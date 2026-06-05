@@ -266,7 +266,8 @@ class _PrestamoDetailSheet extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      child: ListView(
+        controller: scrollController,
         children: [
           Container(
             width: 40,
