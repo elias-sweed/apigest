@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/errors/error_helpers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/docente.dart';
 import '../../providers/docente_providers.dart';
@@ -89,8 +90,10 @@ class _DocenteFormPageState extends ConsumerState<DocenteFormPage> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        showError(
+          context,
+          e,
+          errorContext: _isEditing ? 'update_docente' : 'create_docente',
         );
       }
     } finally {

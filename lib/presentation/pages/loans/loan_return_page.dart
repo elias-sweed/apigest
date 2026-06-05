@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/prestamo_providers.dart';
 import '../../providers/devolucion_providers.dart';
+import '../../../core/errors/app_messages.dart';
+import '../../../core/errors/error_helpers.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../domain/entities/prestamo.dart';
 import '../../widgets/signature/signature_pad.dart';
@@ -44,7 +46,8 @@ class _LoanReturnPageState extends ConsumerState<LoanReturnPage> {
       ),
       body: prestamoAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        error: (_, _) =>
+            const Center(child: Text(AppMessages.errorCarga)),
         data: (prestamo) => Column(
           children: [
             Expanded(
@@ -201,21 +204,13 @@ class _LoanReturnPageState extends ConsumerState<LoanReturnPage> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Devolución registrada'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccess(context, AppMessages.devolucionRegistrada);
         ref.invalidate(prestamoListProvider);
+        ref.invalidate(prestamoDetailProvider(widget.prestamoId));
         context.pop();
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) showError(context, e, errorContext: 'create_devolucion');
     }
   }
 }

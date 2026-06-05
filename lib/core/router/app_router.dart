@@ -6,6 +6,7 @@ import '../../presentation/pages/home/shell_page.dart';
 import '../../presentation/pages/dashboard/dashboard_page.dart';
 import '../../presentation/pages/loans/loans_page.dart';
 import '../../presentation/pages/loans/loan_create_page.dart';
+import '../../presentation/pages/loans/loan_detail_page.dart';
 import '../../presentation/pages/loans/loan_return_page.dart';
 import '../../presentation/pages/equipment/equipment_page.dart';
 import '../../presentation/pages/equipment/equipo_form_page.dart';
@@ -64,7 +65,7 @@ GoRouter appRouter(SupabaseClient supabase) {
               GoRoute(
                 path: ':id',
                 name: 'prestamoDetalle',
-                builder: (context, state) => const LoansPage(),
+                builder: (context, state) => const LoanDetailPage(),
               ),
               GoRoute(
                 path: 'devolucion/:id',

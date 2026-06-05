@@ -56,8 +56,7 @@ class EquipmentPage extends ConsumerWidget {
           Expanded(
             child: equiposAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _ErrorView(
-                message: error.toString(),
+              error: (_, _) => _ErrorView(
                 onRetry: () => ref.refresh(equipoListProvider.future),
               ),
               data: (equipos) {
@@ -206,10 +205,9 @@ class _EmptyView extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  final String message;
   final VoidCallback? onRetry;
 
-  const _ErrorView({required this.message, this.onRetry});
+  const _ErrorView({this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -224,12 +222,6 @@ class _ErrorView extends StatelessWidget {
             Text(
               'No se pudieron cargar los equipos.',
               style: TextStyle(color: Colors.grey[600], fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: Colors.grey[500], fontSize: 11),
-              textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),

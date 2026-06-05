@@ -45,6 +45,44 @@ class PrestamoRemoteDatasource {
         .then((data) => PrestamoModel.fromJson(data));
   }
 
+  Future<PrestamoModel> updatePrestamo(
+    String id,
+    Map<String, dynamic> data,
+  ) {
+    return _client
+        .from(_table)
+        .update(data)
+        .eq('id', id)
+        .select('''
+          *,
+          docentes:docente_id(nombre_completo),
+          usuarios:encargado_id(nombre_completo),
+          prestamo_equipos(
+            *,
+            equipos( codigo_patrimonial, marca, modelo, tipo )
+          )
+        ''')
+        .single()
+        .then((data) => PrestamoModel.fromJson(data));
+  }
+
+  Future<void> addEquipos(
+    String prestamoId,
+    List<String> equipoIds,
+  ) async {
+    if (equipoIds.isEmpty) return;
+    final rows = equipoIds.map((id) => {
+      'prestamo_id': prestamoId,
+      'equipo_id': id,
+      'fecha_devolucion_real': null,
+    }).toList();
+    await _client.from('prestamo_equipos').insert(rows);
+  }
+
+  Future<void> removeEquipo(String prestamoEquipoId) async {
+    await _client.from('prestamo_equipos').delete().eq('id', prestamoEquipoId);
+  }
+
   Future<PrestamoModel> createPrestamo(
     Map<String, dynamic> prestamoJson,
     List<Map<String, dynamic>> equiposJson,
@@ -61,7 +99,16 @@ class PrestamoRemoteDatasource {
         .then((data) => PrestamoModel.fromJson(data));
 
     if (equiposJson.isNotEmpty) {
-      await _client.from('prestamo_equipos').insert(equiposJson);
+      final equiposConPrestamoId = equiposJson.map((e) => {
+        ...e,
+        'prestamo_id': prestamo.id,
+      }).toList();
+      try {
+        await _client.from('prestamo_equipos').insert(equiposConPrestamoId);
+      } catch (_) {
+        await _client.from(_table).delete().eq('id', prestamo.id);
+        rethrow;
+      }
     }
 
     return prestamo;

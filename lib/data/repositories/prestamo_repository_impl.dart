@@ -18,6 +18,21 @@ class PrestamoRepositoryImpl implements PrestamoRepository {
   }
 
   @override
+  Future<Prestamo> updatePrestamo(String id, Map<String, dynamic> data) {
+    return remote.updatePrestamo(id, data);
+  }
+
+  @override
+  Future<void> addEquipos(String prestamoId, List<String> equipoIds) {
+    return remote.addEquipos(prestamoId, equipoIds);
+  }
+
+  @override
+  Future<void> removeEquipo(String prestamoEquipoId) {
+    return remote.removeEquipo(prestamoEquipoId);
+  }
+
+  @override
   Future<Prestamo> createPrestamo(
     Map<String, dynamic> prestamoData,
     List<Map<String, dynamic>> equipos,

@@ -34,12 +34,10 @@ final equipoSearchProvider = StateProvider<String>((ref) => '');
 
 final equipoFilterEstadoProvider = StateProvider<String?>((ref) => null);
 
-final equipoListProvider = FutureProvider<List<Equipo>>((ref) {
+final equipoListProvider = FutureProvider<List<Equipo>>((ref) async {
   final repository = ref.watch(equipoRepositoryProvider);
   final search = ref.watch(equipoSearchProvider);
   final estado = ref.watch(equipoFilterEstadoProvider);
-  final sync = ref.watch(syncServiceProvider);
-  sync.syncEquipos();
   return repository.getEquipos(
     search: search.isEmpty ? null : search,
     estado: estado,

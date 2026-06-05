@@ -27,13 +27,14 @@ class LoansPage extends ConsumerWidget {
       ),
       body: prestamos.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(
+        error: (_, _) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error: $err', textAlign: TextAlign.center),
+              const Text('No se pudieron cargar los préstamos.',
+                  textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(prestamoListProvider),

@@ -20,25 +20,8 @@ class SignaturePadState extends State<SignaturePad> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade400),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(7),
-            child: GestureDetector(
-              onPanStart: (details) =>
-                  setState(() => _points.add(details.localPosition)),
-              onPanUpdate: (details) =>
-                  setState(() => _points.add(details.localPosition)),
-              onPanEnd: (_) => setState(() => _points.add(null)),
-              child: CustomPaint(
-                size: const Size(double.infinity, 200),
-                painter: _SignaturePainter(_points),
-              ),
-            ),
-          ),
+        RepaintBoundary(
+          child: _SignatureCanvas(points: _points),
         ),
         const SizedBox(height: 8),
         Row(
@@ -56,7 +39,8 @@ class SignaturePadState extends State<SignaturePad> {
   }
 
   void _clear() {
-    setState(() => _points.clear());
+    _points.clear();
+    setState(() {});
     widget.onChanged?.call(null);
   }
 
@@ -81,6 +65,41 @@ class SignaturePadState extends State<SignaturePad> {
   }
 }
 
+class _SignatureCanvas extends StatefulWidget {
+  final List<Offset?> points;
+
+  const _SignatureCanvas({required this.points});
+
+  @override
+  State<_SignatureCanvas> createState() => _SignatureCanvasState();
+}
+
+class _SignatureCanvasState extends State<_SignatureCanvas> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(7),
+        child: GestureDetector(
+          onPanStart: (d) =>
+              setState(() => widget.points.add(d.localPosition)),
+          onPanUpdate: (d) =>
+              setState(() => widget.points.add(d.localPosition)),
+          onPanEnd: (_) => setState(() => widget.points.add(null)),
+          child: CustomPaint(
+            size: const Size(double.infinity, 200),
+            painter: _SignaturePainter(widget.points),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SignaturePainter extends CustomPainter {
   final List<Offset?> points;
   _SignaturePainter(this.points);
@@ -96,7 +115,10 @@ class _SignaturePainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      tp.paint(canvas, Offset(size.width / 2 - tp.width / 2, size.height / 2 - tp.height / 2));
+      tp.paint(
+        canvas,
+        Offset(size.width / 2 - tp.width / 2, size.height / 2 - tp.height / 2),
+      );
       return;
     }
 
@@ -116,6 +138,5 @@ class _SignaturePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SignaturePainter oldDelegate) =>
-      oldDelegate.points != points;
+  bool shouldRepaint(covariant _SignaturePainter oldDelegate) => true;
 }

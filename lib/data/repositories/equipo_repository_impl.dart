@@ -21,21 +21,16 @@ class EquipoRepositoryImpl implements EquipoRepository {
 
   @override
   Future<List<Equipo>> getEquipos({String? search, String? estado}) async {
-    final cached = await local.getAll();
-    if (cached.isNotEmpty) {
-      if (connectivity.isOnline) {
-        remote.getEquipos(search: search, estado: estado).then((lista) {
-          local.upsertAll(lista);
-        });
-      }
-      return cached;
-    }
     if (connectivity.isOnline) {
-      final lista = await remote.getEquipos(search: search, estado: estado);
-      await local.upsertAll(lista);
-      return lista;
+      try {
+        final lista = await remote.getEquipos(search: search, estado: estado);
+        await local.upsertAll(lista);
+        return lista;
+      } catch (_) {
+        return local.getAll();
+      }
     }
-    return cached;
+    return local.getAll();
   }
 
   @override

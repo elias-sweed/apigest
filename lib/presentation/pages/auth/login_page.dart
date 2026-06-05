@@ -59,7 +59,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (message.contains('Email not confirmed')) {
       return 'Correo no confirmado. Revisa tu bandeja de entrada.';
     }
-    return message;
+    return 'Error de inicio de sesión. Intente nuevamente.';
   }
 
   @override

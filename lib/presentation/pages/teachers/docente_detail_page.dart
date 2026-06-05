@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/errors/error_helpers.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/docente.dart';
@@ -19,7 +20,7 @@ class DocenteDetailPage extends ConsumerWidget {
         appBar: _DetailAppBar(),
         body: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Scaffold(
+      error: (_, _) => Scaffold(
         appBar: const _DetailAppBar(),
         body: Center(
           child: Column(
@@ -27,8 +28,8 @@ class DocenteDetailPage extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
               const SizedBox(height: 16),
-              Text('Error al cargar docente',
-                  style: TextStyle(color: Colors.grey[600])),
+              const Text('No se pudo cargar el docente.',
+                  style: TextStyle(color: Colors.grey)),
             ],
           ),
         ),
@@ -103,10 +104,7 @@ class DocenteDetailPage extends ConsumerWidget {
                   );
                 }
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
+                if (context.mounted) showError(context, e);
               }
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),

@@ -5,6 +5,8 @@ import '../../providers/prestamo_providers.dart';
 import '../../providers/docente_providers.dart';
 import '../../providers/equipo_providers.dart';
 import '../../providers/devolucion_providers.dart';
+import '../../../core/errors/app_messages.dart';
+import '../../../core/errors/error_helpers.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../domain/entities/docente.dart';
 import '../../widgets/signature/signature_pad.dart';
@@ -82,7 +84,8 @@ class _LoanCreatePageState extends ConsumerState<LoanCreatePage> {
         Expanded(
           child: docentes.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error: $err')),
+            error: (_, _) =>
+                const Center(child: Text(AppMessages.errorCarga)),
             data: (lista) {
               final filtered = lista.where((d) {
                 if (!d.activo) return false;
@@ -153,7 +156,8 @@ class _LoanCreatePageState extends ConsumerState<LoanCreatePage> {
         Expanded(
           child: equipos.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error: $err')),
+            error: (_, _) =>
+                const Center(child: Text(AppMessages.errorCarga)),
             data: (lista) {
               final disponibles = lista
                   .where((e) =>
@@ -303,21 +307,13 @@ class _LoanCreatePageState extends ConsumerState<LoanCreatePage> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Préstamo creado exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccess(context, AppMessages.prestamoCreado);
         ref.invalidate(prestamoListProvider);
+        ref.invalidate(equipoListProvider);
         context.pop();
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) showError(context, e, errorContext: 'create_prestamo');
     }
   }
 }
