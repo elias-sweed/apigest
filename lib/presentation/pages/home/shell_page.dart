@@ -1,45 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
+import '../../../core/auth/route_guard.dart';
+import '../../../domain/entities/user_role.dart';
 
-class ShellPage extends StatelessWidget {
+class ShellPage extends ConsumerWidget {
   final Widget child;
 
   const ShellPage({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentUserRoleProvider);
+    final location = GoRouterState.of(context).matchedLocation;
+
+    final redirect = RouteGuard.checkRedirect(location, role, RouteNames.dashboard);
+    if (redirect != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => context.go(redirect));
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 1024;
-        if (isDesktop) return _DesktopShell(child: child);
-        return _MobileShell(child: child);
+        if (isDesktop) {
+        return _DesktopShell(role: role, child: child);
+      }
+      return _MobileShell(role: role, child: child);
       },
     );
   }
 }
 
+class _TabConfig {
+  final String label;
+  final IconData icon;
+  final String route;
+
+  const _TabConfig({
+    required this.label,
+    required this.icon,
+    required this.route,
+  });
+}
+
+List<_TabConfig> _tabsForRole(UserRole role) {
+  if (role.isEncargadoAip) {
+    return const [
+      _TabConfig(label: 'Dashboard', icon: Icons.dashboard, route: RouteNames.dashboard),
+      _TabConfig(label: 'Préstamos', icon: Icons.assignment, route: RouteNames.prestamos),
+      _TabConfig(label: 'Equipos', icon: Icons.devices, route: RouteNames.equipos),
+      _TabConfig(label: 'Docentes', icon: Icons.school, route: RouteNames.docentes),
+      _TabConfig(label: 'Historial', icon: Icons.history, route: RouteNames.historial),
+    ];
+  }
+  return const [
+    _TabConfig(label: 'Dashboard', icon: Icons.dashboard, route: RouteNames.dashboard),
+    _TabConfig(label: 'Préstamos', icon: Icons.assignment, route: RouteNames.prestamos),
+    _TabConfig(label: 'Historial', icon: Icons.history, route: RouteNames.historial),
+  ];
+}
+
+int _tabIndex(String location, List<_TabConfig> tabs) {
+  for (var i = 0; i < tabs.length; i++) {
+    if (location.startsWith(tabs[i].route)) return i;
+  }
+  return 0;
+}
+
 class _MobileShell extends StatelessWidget {
   final Widget child;
-  const _MobileShell({required this.child});
+  final UserRole role;
+
+  const _MobileShell({required this.child, required this.role});
 
   @override
   Widget build(BuildContext context) {
+    final tabs = _tabsForRole(role);
     final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _tabIndex(location);
+    final currentIndex = _tabIndex(location, tabs);
 
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
-        onDestinationSelected: (index) => _onTab(context, index),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          NavigationDestination(icon: Icon(Icons.assignment), label: 'Préstamos'),
-          NavigationDestination(icon: Icon(Icons.devices), label: 'Equipos'),
-          NavigationDestination(icon: Icon(Icons.school), label: 'Docentes'),
-          NavigationDestination(icon: Icon(Icons.history), label: 'Historial'),
-        ],
+        onDestinationSelected: (index) => context.go(tabs[index].route),
+        destinations: tabs
+            .map((t) => NavigationDestination(icon: Icon(t.icon), label: t.label))
+            .toList(),
       ),
     );
   }
@@ -47,70 +96,34 @@ class _MobileShell extends StatelessWidget {
 
 class _DesktopShell extends StatelessWidget {
   final Widget child;
-  const _DesktopShell({required this.child});
+  final UserRole role;
+
+  const _DesktopShell({required this.child, required this.role});
 
   @override
   Widget build(BuildContext context) {
+    final tabs = _tabsForRole(role);
     final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _tabIndex(location);
+    final currentIndex = _tabIndex(location, tabs);
 
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
             selectedIndex: currentIndex,
-            onDestinationSelected: (index) => _onTab(context, index),
+            onDestinationSelected: (index) => context.go(tabs[index].route),
             labelType: NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.dashboard),
-                label: Text('Dashboard'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.assignment),
-                label: Text('Préstamos'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.devices),
-                label: Text('Equipos'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.school),
-                label: Text('Docentes'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.history),
-                label: Text('Historial'),
-              ),
-            ],
+            destinations: tabs
+                .map((t) => NavigationRailDestination(
+                      icon: Icon(t.icon),
+                      label: Text(t.label),
+                    ))
+                .toList(),
           ),
           const VerticalDivider(width: 1),
           Expanded(child: child),
         ],
       ),
     );
-  }
-}
-
-int _tabIndex(String location) {
-  if (location.startsWith(RouteNames.prestamos)) return 1;
-  if (location.startsWith(RouteNames.equipos)) return 2;
-  if (location.startsWith(RouteNames.docentes)) return 3;
-  if (location.startsWith(RouteNames.historial)) return 4;
-  return 0;
-}
-
-void _onTab(BuildContext context, int index) {
-  switch (index) {
-    case 0:
-      context.go(RouteNames.dashboard);
-    case 1:
-      context.go(RouteNames.prestamos);
-    case 2:
-      context.go(RouteNames.equipos);
-    case 3:
-      context.go(RouteNames.docentes);
-    case 4:
-      context.go(RouteNames.historial);
   }
 }

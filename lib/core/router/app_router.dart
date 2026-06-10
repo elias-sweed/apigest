@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../domain/entities/user_role.dart';
 import '../../presentation/pages/splash/splash_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
 import '../../presentation/pages/home/shell_page.dart';
@@ -30,6 +31,20 @@ GoRouter appRouter(SupabaseClient supabase) {
 
       if (!isLoggedIn && !isOnLogin) return RouteNames.login;
       if (isLoggedIn && isOnLogin) return RouteNames.dashboard;
+
+      if (isLoggedIn) {
+        final role = UserRole.fromString(
+          session.user.userMetadata?['rol'] as String?,
+        );
+        if (role.isPracticante) {
+          final location = state.matchedLocation;
+          final isRestricted = location.startsWith(RouteNames.equipos) ||
+              location.startsWith(RouteNames.docentes);
+          if (isRestricted) {
+            return RouteNames.dashboard;
+          }
+        }
+      }
 
       return null;
     },

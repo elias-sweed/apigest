@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/auth/permissions.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/activity_item.dart';
@@ -13,8 +15,10 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentUserRoleProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
     final activityAsync = ref.watch(recentActivityProvider);
+    final canViewFull = Permissions.canViewFullDashboard(role);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,9 +44,12 @@ class DashboardPage extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             statsAsync.when(
-              loading: () => const _StatsSkeleton(),
-              error: (_, _) => const _StatsSkeleton(),
-              data: (stats) => _StatsGrid(stats: stats),
+              loading: () => const _StatsSkeleton(showAll: false),
+              error: (_, _) => const _StatsSkeleton(showAll: false),
+              data: (stats) => _StatsGrid(
+                stats: stats,
+                showMantenimiento: canViewFull,
+              ),
             ),
             const SizedBox(height: 24),
             Text(
@@ -54,27 +61,29 @@ class DashboardPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             _ActiveLoansSection(),
-            const SizedBox(height: 24),
-            Text(
-              'Actividad reciente',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            activityAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, _) => const Text('No se pudo cargar la actividad.'),
-              data: (items) {
-                if (items.isEmpty) {
-                  return const Center(child: Text('Sin actividad reciente.'));
-                }
-                return Column(
-                  children: items.map((item) => _ActivityTile(item: item)).toList(),
-                );
-              },
-            ),
+            if (canViewFull) ...[
+              const SizedBox(height: 24),
+              Text(
+                'Actividad reciente',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              activityAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => const Text('No se pudo cargar la actividad.'),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return const Center(child: Text('Sin actividad reciente.'));
+                  }
+                  return Column(
+                    children: items.map((item) => _ActivityTile(item: item)).toList(),
+                  );
+                },
+              ),
+            ],
             const SizedBox(height: 24),
             Text(
               'Acción rápida',
@@ -127,14 +136,45 @@ class DashboardPage extends ConsumerWidget {
 
 class _StatsGrid extends StatelessWidget {
   final DashboardStats stats;
-  const _StatsGrid({required this.stats});
+  final bool showMantenimiento;
+
+  const _StatsGrid({required this.stats, required this.showMantenimiento});
 
   @override
   Widget build(BuildContext context) {
+    final metrics = [
+      _MetricData(
+        icon: Icons.assignment,
+        count: '${stats.prestamosActivos}',
+        label: 'Activos',
+        color: AppTheme.primaryColor,
+      ),
+      _MetricData(
+        icon: Icons.devices,
+        count: '${stats.equiposDisponibles}',
+        label: 'Disponibles',
+        color: AppTheme.successColor,
+      ),
+      _MetricData(
+        icon: Icons.sync,
+        count: '${stats.equiposPrestados}',
+        label: 'Prestados',
+        color: AppTheme.warningColor,
+      ),
+      if (showMantenimiento)
+        _MetricData(
+          icon: Icons.build,
+          count: '${stats.equiposMantenimiento}',
+          label: 'Mantenimiento',
+          color: Colors.orange,
+        ),
+    ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 600;
-        final crossAxisCount = isDesktop ? 4 : 2;
+        final count = metrics.length;
+        final crossAxisCount = isDesktop ? count : (count > 2 ? 2 : count);
         return GridView.count(
           crossAxisCount: crossAxisCount,
           shrinkWrap: true,
@@ -142,55 +182,53 @@ class _StatsGrid extends StatelessWidget {
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
           childAspectRatio: 1.2,
-          children: [
-            _MetricCard(
-              icon: Icons.assignment,
-              count: '${stats.prestamosActivos}',
-              label: 'Activos',
-              color: AppTheme.primaryColor,
-            ),
-            _MetricCard(
-              icon: Icons.devices,
-              count: '${stats.equiposDisponibles}',
-              label: 'Disponibles',
-              color: AppTheme.successColor,
-            ),
-            _MetricCard(
-              icon: Icons.sync,
-              count: '${stats.equiposPrestados}',
-              label: 'Prestados',
-              color: AppTheme.warningColor,
-            ),
-            _MetricCard(
-              icon: Icons.build,
-              count: '${stats.equiposMantenimiento}',
-              label: 'Mantenimiento',
-              color: Colors.orange,
-            ),
-          ],
+          children: metrics
+              .map((m) => _MetricCard(
+                    icon: m.icon,
+                    count: m.count,
+                    label: m.label,
+                    color: m.color,
+                  ))
+              .toList(),
         );
       },
     );
   }
 }
 
+class _MetricData {
+  final IconData icon;
+  final String count;
+  final String label;
+  final Color color;
+
+  const _MetricData({
+    required this.icon,
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+}
+
 class _StatsSkeleton extends StatelessWidget {
-  const _StatsSkeleton();
+  final bool showAll;
+  const _StatsSkeleton({required this.showAll});
 
   @override
   Widget build(BuildContext context) {
+    final count = showAll ? 4 : 3;
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 600;
         return GridView.count(
-          crossAxisCount: isDesktop ? 4 : 2,
+          crossAxisCount: isDesktop ? count : (count > 2 ? 2 : count),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
           childAspectRatio: 1.2,
           children: List.generate(
-            4,
+            count,
             (_) => Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),

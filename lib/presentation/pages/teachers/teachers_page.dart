@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/auth/permissions.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/docente.dart';
@@ -11,6 +13,8 @@ class TeachersPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentUserRoleProvider);
+    final canManage = Permissions.canManageDocentes(role);
     final search = ref.watch(docenteSearchProvider);
     final soloActivos = ref.watch(docenteSoloActivosProvider);
     final docentesAsync = ref.watch(docenteListProvider);
@@ -18,12 +22,14 @@ class TeachersPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Docentes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.go(RouteNames.docenteNuevo),
-          ),
-        ],
+        actions: canManage
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => context.go(RouteNames.docenteNuevo),
+                ),
+              ]
+            : null,
       ),
       body: Column(
         children: [
@@ -68,7 +74,7 @@ class TeachersPage extends ConsumerWidget {
                 onRetry: () => ref.refresh(docenteListProvider.future),
               ),
               data: (docentes) {
-                if (docentes.isEmpty) return _EmptyView();
+                if (docentes.isEmpty) return _EmptyView(canCreate: canManage);
                 return RefreshIndicator(
                   onRefresh: () => ref.refresh(docenteListProvider.future),
                   child: ListView.builder(
@@ -153,6 +159,9 @@ class _DocenteCard extends ConsumerWidget {
 }
 
 class _EmptyView extends StatelessWidget {
+  final bool canCreate;
+  const _EmptyView({required this.canCreate});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -165,12 +174,14 @@ class _EmptyView extends StatelessWidget {
             'No hay docentes registrados',
             style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => context.go(RouteNames.docenteNuevo),
-            icon: const Icon(Icons.add),
-            label: const Text('Registrar primer docente'),
-          ),
+          if (canCreate) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.go(RouteNames.docenteNuevo),
+              icon: const Icon(Icons.add),
+              label: const Text('Registrar primer docente'),
+            ),
+          ],
         ],
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/auth/permissions.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/equipo.dart';
@@ -11,6 +13,8 @@ class EquipmentPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentUserRoleProvider);
+    final canManage = Permissions.canManageEquipos(role);
     final search = ref.watch(equipoSearchProvider);
     final filter = ref.watch(equipoFilterEstadoProvider);
     final equiposAsync = ref.watch(equipoListProvider);
@@ -18,12 +22,14 @@ class EquipmentPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Equipos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.go(RouteNames.equipoNuevo),
-          ),
-        ],
+        actions: canManage
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => context.go(RouteNames.equipoNuevo),
+                ),
+              ]
+            : null,
       ),
       body: Column(
         children: [
@@ -60,7 +66,7 @@ class EquipmentPage extends ConsumerWidget {
                 onRetry: () => ref.refresh(equipoListProvider.future),
               ),
               data: (equipos) {
-                if (equipos.isEmpty) return _EmptyView();
+                if (equipos.isEmpty) return _EmptyView(canCreate: canManage);
                 return RefreshIndicator(
                   onRefresh: () => ref.refresh(equipoListProvider.future),
                   child: ListView.builder(
@@ -180,6 +186,9 @@ class _EquipoCard extends ConsumerWidget {
 }
 
 class _EmptyView extends StatelessWidget {
+  final bool canCreate;
+  const _EmptyView({required this.canCreate});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -192,12 +201,14 @@ class _EmptyView extends StatelessWidget {
             'No hay equipos registrados',
             style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => context.go(RouteNames.equipoNuevo),
-            icon: const Icon(Icons.add),
-            label: const Text('Registrar primer equipo'),
-          ),
+          if (canCreate) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.go(RouteNames.equipoNuevo),
+              icon: const Icon(Icons.add),
+              label: const Text('Registrar primer equipo'),
+            ),
+          ],
         ],
       ),
     );

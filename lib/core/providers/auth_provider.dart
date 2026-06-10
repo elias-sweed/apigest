@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../domain/entities/user_role.dart';
 import '../network/supabase_client.dart';
 
 final supabaseProvider = Provider<SupabaseClient>((ref) {
@@ -17,4 +18,9 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 
 final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authStateProvider).valueOrNull;
+});
+
+final currentUserRoleProvider = Provider<UserRole>((ref) {
+  final user = ref.watch(currentUserProvider);
+  return UserRole.fromString(user?.userMetadata?['rol'] as String?);
 });
