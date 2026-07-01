@@ -24,3 +24,8 @@ final currentUserRoleProvider = Provider<UserRole>((ref) {
   final user = ref.watch(currentUserProvider);
   return UserRole.fromString(user?.userMetadata?['rol'] as String?);
 });
+
+final logoutProvider = Provider<void Function()>((ref) {
+  final supabase = ref.watch(supabaseProvider);
+  return () async => supabase.auth.signOut();
+});

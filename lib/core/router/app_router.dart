@@ -16,6 +16,7 @@ import '../../presentation/pages/teachers/teachers_page.dart';
 import '../../presentation/pages/teachers/docente_form_page.dart';
 import '../../presentation/pages/teachers/docente_detail_page.dart';
 import '../../presentation/pages/history/history_page.dart';
+import '../../presentation/pages/reportes/reportes_page.dart';
 import 'route_names.dart';
 
 GoRouter appRouter(SupabaseClient supabase) {
@@ -39,7 +40,8 @@ GoRouter appRouter(SupabaseClient supabase) {
         if (role.isPracticante) {
           final location = state.matchedLocation;
           final isRestricted = location.startsWith(RouteNames.equipos) ||
-              location.startsWith(RouteNames.docentes);
+              location.startsWith(RouteNames.docentes) ||
+              location.startsWith(RouteNames.reportes);
           if (isRestricted) {
             return RouteNames.dashboard;
           }
@@ -128,6 +130,11 @@ GoRouter appRouter(SupabaseClient supabase) {
             path: RouteNames.historial,
             name: 'historial',
             builder: (context, state) => const HistoryPage(),
+          ),
+          GoRoute(
+            path: RouteNames.reportes,
+            name: 'reportes',
+            builder: (context, state) => const ReportesPage(),
           ),
         ],
       ),

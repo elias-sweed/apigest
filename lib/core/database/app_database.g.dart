@@ -1829,15 +1829,287 @@ class SyncQueueTableCompanion extends UpdateCompanion<SyncQueueEntryDrift> {
   }
 }
 
+class $ReportCacheTableTable extends ReportCacheTable
+    with TableInfo<$ReportCacheTableTable, ReportCacheTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReportCacheTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dataMeta = const VerificationMeta('data');
+  @override
+  late final GeneratedColumn<String> data = GeneratedColumn<String>(
+    'data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [key, data, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'report_cache_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReportCacheTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('data')) {
+      context.handle(
+        _dataMeta,
+        this.data.isAcceptableOrUnknown(data['data']!, _dataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dataMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  ReportCacheTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReportCacheTableData(
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      data: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ReportCacheTableTable createAlias(String alias) {
+    return $ReportCacheTableTable(attachedDatabase, alias);
+  }
+}
+
+class ReportCacheTableData extends DataClass
+    implements Insertable<ReportCacheTableData> {
+  final String key;
+  final String data;
+  final DateTime updatedAt;
+  const ReportCacheTableData({
+    required this.key,
+    required this.data,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['data'] = Variable<String>(data);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ReportCacheTableCompanion toCompanion(bool nullToAbsent) {
+    return ReportCacheTableCompanion(
+      key: Value(key),
+      data: Value(data),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ReportCacheTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReportCacheTableData(
+      key: serializer.fromJson<String>(json['key']),
+      data: serializer.fromJson<String>(json['data']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'data': serializer.toJson<String>(data),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ReportCacheTableData copyWith({
+    String? key,
+    String? data,
+    DateTime? updatedAt,
+  }) => ReportCacheTableData(
+    key: key ?? this.key,
+    data: data ?? this.data,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ReportCacheTableData copyWithCompanion(ReportCacheTableCompanion data) {
+    return ReportCacheTableData(
+      key: data.key.present ? data.key.value : this.key,
+      data: data.data.present ? data.data.value : this.data,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReportCacheTableData(')
+          ..write('key: $key, ')
+          ..write('data: $data, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(key, data, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReportCacheTableData &&
+          other.key == this.key &&
+          other.data == this.data &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ReportCacheTableCompanion extends UpdateCompanion<ReportCacheTableData> {
+  final Value<String> key;
+  final Value<String> data;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ReportCacheTableCompanion({
+    this.key = const Value.absent(),
+    this.data = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReportCacheTableCompanion.insert({
+    required String key,
+    required String data,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : key = Value(key),
+       data = Value(data),
+       updatedAt = Value(updatedAt);
+  static Insertable<ReportCacheTableData> custom({
+    Expression<String>? key,
+    Expression<String>? data,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (data != null) 'data': data,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReportCacheTableCompanion copyWith({
+    Value<String>? key,
+    Value<String>? data,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ReportCacheTableCompanion(
+      key: key ?? this.key,
+      data: data ?? this.data,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (data.present) {
+      map['data'] = Variable<String>(data.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReportCacheTableCompanion(')
+          ..write('key: $key, ')
+          ..write('data: $data, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $EquiposTableTable equiposTable = $EquiposTableTable(this);
   late final $DocentesTableTable docentesTable = $DocentesTableTable(this);
   late final $SyncQueueTableTable syncQueueTable = $SyncQueueTableTable(this);
+  late final $ReportCacheTableTable reportCacheTable = $ReportCacheTableTable(
+    this,
+  );
   late final EquipoDao equipoDao = EquipoDao(this as AppDatabase);
   late final DocenteDao docenteDao = DocenteDao(this as AppDatabase);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
+  late final ReportCacheDao reportCacheDao = ReportCacheDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1846,6 +2118,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     equiposTable,
     docentesTable,
     syncQueueTable,
+    reportCacheTable,
   ];
 }
 
@@ -2746,6 +3019,178 @@ typedef $$SyncQueueTableTableProcessedTableManager =
       SyncQueueEntryDrift,
       PrefetchHooks Function()
     >;
+typedef $$ReportCacheTableTableCreateCompanionBuilder =
+    ReportCacheTableCompanion Function({
+      required String key,
+      required String data,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ReportCacheTableTableUpdateCompanionBuilder =
+    ReportCacheTableCompanion Function({
+      Value<String> key,
+      Value<String> data,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ReportCacheTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ReportCacheTableTable> {
+  $$ReportCacheTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get data => $composableBuilder(
+    column: $table.data,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ReportCacheTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReportCacheTableTable> {
+  $$ReportCacheTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get data => $composableBuilder(
+    column: $table.data,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReportCacheTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReportCacheTableTable> {
+  $$ReportCacheTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get data =>
+      $composableBuilder(column: $table.data, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ReportCacheTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReportCacheTableTable,
+          ReportCacheTableData,
+          $$ReportCacheTableTableFilterComposer,
+          $$ReportCacheTableTableOrderingComposer,
+          $$ReportCacheTableTableAnnotationComposer,
+          $$ReportCacheTableTableCreateCompanionBuilder,
+          $$ReportCacheTableTableUpdateCompanionBuilder,
+          (
+            ReportCacheTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $ReportCacheTableTable,
+              ReportCacheTableData
+            >,
+          ),
+          ReportCacheTableData,
+          PrefetchHooks Function()
+        > {
+  $$ReportCacheTableTableTableManager(
+    _$AppDatabase db,
+    $ReportCacheTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReportCacheTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReportCacheTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReportCacheTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> key = const Value.absent(),
+                Value<String> data = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReportCacheTableCompanion(
+                key: key,
+                data: data,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String key,
+                required String data,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ReportCacheTableCompanion.insert(
+                key: key,
+                data: data,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ReportCacheTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReportCacheTableTable,
+      ReportCacheTableData,
+      $$ReportCacheTableTableFilterComposer,
+      $$ReportCacheTableTableOrderingComposer,
+      $$ReportCacheTableTableAnnotationComposer,
+      $$ReportCacheTableTableCreateCompanionBuilder,
+      $$ReportCacheTableTableUpdateCompanionBuilder,
+      (
+        ReportCacheTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $ReportCacheTableTable,
+          ReportCacheTableData
+        >,
+      ),
+      ReportCacheTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2756,4 +3201,6 @@ class $AppDatabaseManager {
       $$DocentesTableTableTableManager(_db, _db.docentesTable);
   $$SyncQueueTableTableTableManager get syncQueueTable =>
       $$SyncQueueTableTableTableManager(_db, _db.syncQueueTable);
+  $$ReportCacheTableTableTableManager get reportCacheTable =>
+      $$ReportCacheTableTableTableManager(_db, _db.reportCacheTable);
 }

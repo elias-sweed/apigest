@@ -52,6 +52,7 @@ List<_TabConfig> _tabsForRole(UserRole role) {
       _TabConfig(label: 'Préstamos', icon: Icons.assignment, route: RouteNames.prestamos),
       _TabConfig(label: 'Equipos', icon: Icons.devices, route: RouteNames.equipos),
       _TabConfig(label: 'Docentes', icon: Icons.school, route: RouteNames.docentes),
+      _TabConfig(label: 'Reportes', icon: Icons.bar_chart, route: RouteNames.reportes),
       _TabConfig(label: 'Historial', icon: Icons.history, route: RouteNames.historial),
     ];
   }
@@ -69,17 +70,18 @@ int _tabIndex(String location, List<_TabConfig> tabs) {
   return 0;
 }
 
-class _MobileShell extends StatelessWidget {
+class _MobileShell extends ConsumerWidget {
   final Widget child;
   final UserRole role;
 
   const _MobileShell({required this.child, required this.role});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tabs = _tabsForRole(role);
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _tabIndex(location, tabs);
+    final logout = ref.read(logoutProvider);
 
     return Scaffold(
       body: child,
@@ -90,35 +92,55 @@ class _MobileShell extends StatelessWidget {
             .map((t) => NavigationDestination(icon: Icon(t.icon), label: t.label))
             .toList(),
       ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: logout,
+        tooltip: 'Cerrar sesión',
+        child: const Icon(Icons.logout, size: 20),
+      ),
     );
   }
 }
 
-class _DesktopShell extends StatelessWidget {
+class _DesktopShell extends ConsumerWidget {
   final Widget child;
   final UserRole role;
 
   const _DesktopShell({required this.child, required this.role});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tabs = _tabsForRole(role);
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _tabIndex(location, tabs);
+    final logout = ref.read(logoutProvider);
 
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) => context.go(tabs[index].route),
-            labelType: NavigationRailLabelType.all,
-            destinations: tabs
-                .map((t) => NavigationRailDestination(
-                      icon: Icon(t.icon),
-                      label: Text(t.label),
-                    ))
-                .toList(),
+          Column(
+            children: [
+              Expanded(
+                child: NavigationRail(
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: (index) => context.go(tabs[index].route),
+                  labelType: NavigationRailLabelType.all,
+                  destinations: tabs
+                      .map((t) => NavigationRailDestination(
+                            icon: Icon(t.icon),
+                            label: Text(t.label),
+                          ))
+                      .toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: IconButton(
+                  onPressed: logout,
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Cerrar sesión',
+                ),
+              ),
+            ],
           ),
           const VerticalDivider(width: 1),
           Expanded(child: child),

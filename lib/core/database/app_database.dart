@@ -6,25 +6,42 @@ import 'package:path_provider/path_provider.dart';
 import 'tables/equipos_table.dart';
 import 'tables/docentes_table.dart';
 import 'tables/sync_queue_table.dart';
+import 'tables/report_cache_table.dart';
 import 'daos/equipo_dao.dart';
 import 'daos/docente_dao.dart';
 import 'daos/sync_queue_dao.dart';
+import 'daos/report_cache_dao.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [EquiposTable, DocentesTable, SyncQueueTable],
-  daos: [EquipoDao, DocenteDao, SyncQueueDao],
+  tables: [
+    EquiposTable,
+    DocentesTable,
+    SyncQueueTable,
+    ReportCacheTable,
+  ],
+  daos: [
+    EquipoDao,
+    DocenteDao,
+    SyncQueueDao,
+    ReportCacheDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase({QueryExecutor? customConn}) : super(customConn ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(reportCacheTable);
+      }
+    },
   );
 
   static QueryExecutor _openConnection() {

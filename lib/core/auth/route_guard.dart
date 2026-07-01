@@ -7,6 +7,7 @@ abstract final class RouteGuard {
   static const _restrictedRoutes = [
     RouteNames.equipos,
     RouteNames.docentes,
+    RouteNames.reportes,
   ];
 
   static bool canAccess(String location, UserRole role) {
