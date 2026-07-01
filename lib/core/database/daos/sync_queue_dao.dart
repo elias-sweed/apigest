@@ -9,7 +9,7 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase>
     with _$SyncQueueDaoMixin {
   SyncQueueDao(super.db);
 
-  Future<int> enqueue(SyncQueueEntryDrift entry) =>
+  Future<int> enqueue(SyncQueueTableCompanion entry) =>
       into(syncQueueTable).insert(entry);
 
   Future<List<SyncQueueEntryDrift>> getAll() =>

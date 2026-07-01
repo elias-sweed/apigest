@@ -13,14 +13,12 @@ class SyncQueueService {
     required String operation,
     required Map<String, dynamic> payload,
   }) async {
-    await _dao.enqueue(SyncQueueEntryDrift(
-      id: 0,
+    await _dao.enqueue(SyncQueueTableCompanion.insert(
       entity: entity,
       entityId: entityId,
       operation: operation,
       payload: jsonEncode(payload),
       createdAt: DateTime.now(),
-      retryCount: 0,
     ));
   }
 

@@ -20,9 +20,26 @@ final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authStateProvider).valueOrNull;
 });
 
-final currentUserRoleProvider = Provider<UserRole>((ref) {
+final currentUserRoleProvider = FutureProvider<UserRole>((ref) async {
   final user = ref.watch(currentUserProvider);
-  return UserRole.fromString(user?.userMetadata?['rol'] as String?);
+  if (user == null) return UserRole.practicante;
+
+  final metadataRole = user.userMetadata?['rol'] as String?;
+  if (metadataRole != null) return UserRole.fromString(metadataRole);
+
+  final supabase = ref.read(supabaseProvider);
+  try {
+    final result = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('email', user.email ?? '')
+        .maybeSingle();
+    if (result != null) {
+      return UserRole.fromString(result['rol'] as String?);
+    }
+  } catch (_) {}
+
+  return UserRole.practicante;
 });
 
 final logoutProvider = Provider<void Function()>((ref) {

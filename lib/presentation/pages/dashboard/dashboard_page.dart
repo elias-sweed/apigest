@@ -6,6 +6,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/activity_item.dart';
+import '../../../domain/entities/user_role.dart';
 import '../../../domain/entities/dashboard_stats.dart';
 import '../../providers/dashboard_providers.dart';
 import '../../providers/prestamo_providers.dart';
@@ -15,7 +16,7 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(currentUserRoleProvider);
+    final role = ref.watch(currentUserRoleProvider).valueOrNull ?? UserRole.practicante;
     final statsAsync = ref.watch(dashboardStatsProvider);
     final activityAsync = ref.watch(recentActivityProvider);
     final canViewFull = Permissions.canViewFullDashboard(role);

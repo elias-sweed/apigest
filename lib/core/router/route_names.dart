@@ -16,4 +16,5 @@ class RouteNames {
   static const String docenteDetalle = '/dashboard/docentes/:id';
   static const String historial = '/dashboard/historial';
   static const String reportes = '/dashboard/reportes';
+  static const String perfil = '/dashboard/perfil';
 }

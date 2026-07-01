@@ -128,6 +128,30 @@ class DocenteRepositoryImpl implements DocenteRepository {
     }
   }
 
+  @override
+  Future<void> eliminarDocente(String id) async {
+    await local.delete(id);
+    if (connectivity.isOnline) {
+      try {
+        await remote.eliminarDocente(id);
+      } catch (_) {
+        await syncQueue.enqueue(
+          entity: 'docentes',
+          entityId: id,
+          operation: 'DELETE',
+          payload: {'id': id},
+        );
+      }
+    } else {
+      await syncQueue.enqueue(
+        entity: 'docentes',
+        entityId: id,
+        operation: 'DELETE',
+        payload: {'id': id},
+      );
+    }
+  }
+
   DocenteModel _toModel(Docente entity) {
     return DocenteModel(
       id: entity.id,

@@ -41,6 +41,10 @@ class DocenteLocalDatasource {
     await _dao.markSynced(id);
   }
 
+  Future<void> delete(String id) async {
+    await _dao.deleteById(id);
+  }
+
   DocenteModel _toModel(DocenteDrift d) {
     return DocenteModel(
       id: d.id,

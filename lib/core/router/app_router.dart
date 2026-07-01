@@ -17,12 +17,13 @@ import '../../presentation/pages/teachers/docente_form_page.dart';
 import '../../presentation/pages/teachers/docente_detail_page.dart';
 import '../../presentation/pages/history/history_page.dart';
 import '../../presentation/pages/reportes/reportes_page.dart';
+import '../../presentation/pages/profile/profile_page.dart';
 import 'route_names.dart';
 
 GoRouter appRouter(SupabaseClient supabase) {
   return GoRouter(
     initialLocation: RouteNames.splash,
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final session = supabase.auth.currentSession;
       final isLoggedIn = session != null;
       final isOnLogin = state.matchedLocation == RouteNames.login;
@@ -34,9 +35,21 @@ GoRouter appRouter(SupabaseClient supabase) {
       if (isLoggedIn && isOnLogin) return RouteNames.dashboard;
 
       if (isLoggedIn) {
-        final role = UserRole.fromString(
+        UserRole role = UserRole.fromString(
           session.user.userMetadata?['rol'] as String?,
         );
+        if (role.isPracticante) {
+          try {
+            final result = await supabase
+                .from('usuarios')
+                .select('rol')
+                .eq('email', session.user.email ?? '')
+                .maybeSingle();
+            if (result != null) {
+              role = UserRole.fromString(result['rol'] as String?);
+            }
+          } catch (_) {}
+        }
         if (role.isPracticante) {
           final location = state.matchedLocation;
           final isRestricted = location.startsWith(RouteNames.equipos) ||
@@ -135,6 +148,11 @@ GoRouter appRouter(SupabaseClient supabase) {
             path: RouteNames.reportes,
             name: 'reportes',
             builder: (context, state) => const ReportesPage(),
+          ),
+          GoRoute(
+            path: RouteNames.perfil,
+            name: 'perfil',
+            builder: (context, state) => const ProfilePage(),
           ),
         ],
       ),

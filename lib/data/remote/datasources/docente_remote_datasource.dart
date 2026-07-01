@@ -49,4 +49,8 @@ class DocenteRemoteDatasource {
         .eq('id', id)
         .then((_) {});
   }
+
+  Future<void> eliminarDocente(String id) {
+    return _client.from(_table).delete().eq('id', id).then((_) {});
+  }
 }

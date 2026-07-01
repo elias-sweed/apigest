@@ -13,7 +13,7 @@ class ShellPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(currentUserRoleProvider);
+    final role = ref.watch(currentUserRoleProvider).valueOrNull ?? UserRole.practicante;
     final location = GoRouterState.of(context).matchedLocation;
 
     final redirect = RouteGuard.checkRedirect(location, role, RouteNames.dashboard);
@@ -25,9 +25,9 @@ class ShellPage extends ConsumerWidget {
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 1024;
         if (isDesktop) {
-        return _DesktopShell(role: role, child: child);
-      }
-      return _MobileShell(role: role, child: child);
+          return _DesktopShell(role: role, child: child);
+        }
+        return _MobileShell(role: role, child: child);
       },
     );
   }
@@ -48,18 +48,20 @@ class _TabConfig {
 List<_TabConfig> _tabsForRole(UserRole role) {
   if (role.isEncargadoAip) {
     return const [
-      _TabConfig(label: 'Dashboard', icon: Icons.dashboard, route: RouteNames.dashboard),
+      _TabConfig(label: 'Inicio', icon: Icons.dashboard, route: RouteNames.dashboard),
       _TabConfig(label: 'Préstamos', icon: Icons.assignment, route: RouteNames.prestamos),
       _TabConfig(label: 'Equipos', icon: Icons.devices, route: RouteNames.equipos),
       _TabConfig(label: 'Docentes', icon: Icons.school, route: RouteNames.docentes),
       _TabConfig(label: 'Reportes', icon: Icons.bar_chart, route: RouteNames.reportes),
       _TabConfig(label: 'Historial', icon: Icons.history, route: RouteNames.historial),
+      _TabConfig(label: 'Perfil', icon: Icons.person, route: RouteNames.perfil),
     ];
   }
   return const [
-    _TabConfig(label: 'Dashboard', icon: Icons.dashboard, route: RouteNames.dashboard),
+    _TabConfig(label: 'Inicio', icon: Icons.dashboard, route: RouteNames.dashboard),
     _TabConfig(label: 'Préstamos', icon: Icons.assignment, route: RouteNames.prestamos),
     _TabConfig(label: 'Historial', icon: Icons.history, route: RouteNames.historial),
+    _TabConfig(label: 'Perfil', icon: Icons.person, route: RouteNames.perfil),
   ];
 }
 
@@ -79,68 +81,119 @@ class _MobileShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabs = _tabsForRole(role);
+    final user = ref.watch(currentUserProvider);
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _tabIndex(location, tabs);
-    final logout = ref.read(logoutProvider);
+    final currentTab = tabs[currentIndex];
 
     return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
+      appBar: AppBar(
+        title: Text(currentTab.label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () => context.go(RouteNames.perfil),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(
+                  _initials(user?.email ?? '?'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      drawer: NavigationDrawer(
         selectedIndex: currentIndex,
-        onDestinationSelected: (index) => context.go(tabs[index].route),
-        destinations: tabs
-            .map((t) => NavigationDestination(icon: Icon(t.icon), label: t.label))
-            .toList(),
+        onDestinationSelected: (index) {
+          Navigator.pop(context);
+          context.go(tabs[index].route);
+        },
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+            child: Row(
+              children: [
+                Icon(Icons.school, color: Theme.of(context).colorScheme.primary, size: 28),
+                const SizedBox(width: 16),
+                Text(
+                  'AIP Gest',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...tabs.map((t) => NavigationDrawerDestination(
+                icon: Icon(t.icon),
+                label: Text(t.label),
+              )),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.small(
-        onPressed: logout,
-        tooltip: 'Cerrar sesión',
-        child: const Icon(Icons.logout, size: 20),
-      ),
+      body: child,
     );
+  }
+
+  String _initials(String email) {
+    if (email.isEmpty) return '?';
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 0) return email[0].toUpperCase();
+    final name = email.substring(0, atIndex);
+    final parts = name.split('.');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
   }
 }
 
-class _DesktopShell extends ConsumerWidget {
+class _DesktopShell extends StatelessWidget {
   final Widget child;
   final UserRole role;
 
   const _DesktopShell({required this.child, required this.role});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tabs = _tabsForRole(role);
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _tabIndex(location, tabs);
-    final logout = ref.read(logoutProvider);
 
     return Scaffold(
       body: Row(
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: NavigationRail(
-                  selectedIndex: currentIndex,
-                  onDestinationSelected: (index) => context.go(tabs[index].route),
-                  labelType: NavigationRailLabelType.all,
-                  destinations: tabs
-                      .map((t) => NavigationRailDestination(
-                            icon: Icon(t.icon),
-                            label: Text(t.label),
-                          ))
-                      .toList(),
-                ),
+          NavigationRail(
+            selectedIndex: currentIndex,
+            onDestinationSelected: (index) => context.go(tabs[index].route),
+            labelType: NavigationRailLabelType.all,
+            leading: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Icon(Icons.school, size: 28, color: Theme.of(context).colorScheme.primary),
+            ),
+            trailing: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: IconButton(
+                onPressed: () => context.go(RouteNames.perfil),
+                icon: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+                tooltip: 'Perfil',
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: IconButton(
-                  onPressed: logout,
-                  icon: const Icon(Icons.logout),
-                  tooltip: 'Cerrar sesión',
-                ),
-              ),
-            ],
+            ),
+            destinations: tabs
+                .map((t) => NavigationRailDestination(
+                      icon: Icon(t.icon),
+                      label: Text(t.label),
+                    ))
+                .toList(),
           ),
           const VerticalDivider(width: 1),
           Expanded(child: child),

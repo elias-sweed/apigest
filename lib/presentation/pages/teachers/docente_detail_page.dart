@@ -53,8 +53,22 @@ class DocenteDetailPage extends ConsumerWidget {
             _HeaderCard(docente: docente),
             const SizedBox(height: 24),
             _InfoSection(docente: docente),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _confirmEliminar(context, ref, docente),
+                icon: const Icon(Icons.delete_forever),
+                label: const Text('Eliminar docente'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
             if (docente.activo) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -78,7 +92,7 @@ class DocenteDetailPage extends ConsumerWidget {
       BuildContext context, WidgetRef ref, Docente docente) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('Desactivar docente'),
         content: Text(
           '¿Estás seguro de desactivar a ${docente.nombreCompleto}? '
@@ -86,12 +100,12 @@ class DocenteDetailPage extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogCtx);
               try {
                 await ref
                     .read(docenteRepositoryProvider)
@@ -109,6 +123,47 @@ class DocenteDetailPage extends ConsumerWidget {
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
             child: const Text('Desactivar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmEliminar(
+      BuildContext context, WidgetRef ref, Docente docente) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Eliminar docente'),
+        content: Text(
+          '¿Estás seguro de eliminar a ${docente.nombreCompleto}? '
+          'Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              try {
+                await ref
+                    .read(docenteRepositoryProvider)
+                    .eliminarDocente(docente.id);
+                ref.invalidate(docenteListProvider);
+                if (context.mounted) {
+                  context.go(RouteNames.docentes);
+                }
+              } catch (e) {
+                if (context.mounted) showError(context, e);
+              }
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Eliminar'),
           ),
         ],
       ),

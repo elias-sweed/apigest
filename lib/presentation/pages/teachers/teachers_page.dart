@@ -6,6 +6,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/docente.dart';
+import '../../../domain/entities/user_role.dart';
 import '../../providers/docente_providers.dart';
 
 class TeachersPage extends ConsumerWidget {
@@ -13,7 +14,7 @@ class TeachersPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(currentUserRoleProvider);
+    final role = ref.watch(currentUserRoleProvider).valueOrNull ?? UserRole.practicante;
     final canManage = Permissions.canManageDocentes(role);
     final search = ref.watch(docenteSearchProvider);
     final soloActivos = ref.watch(docenteSoloActivosProvider);

@@ -6,6 +6,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/excel_generator.dart';
 import '../../../core/services/pdf_generator.dart';
 import '../../../domain/entities/reportes/reporte_diario.dart';
+import '../../../domain/entities/user_role.dart';
 import '../../../domain/entities/reportes/reporte_rango_fechas.dart';
 import '../../../domain/entities/reportes/reporte_general.dart';
 import '../../providers/docente_providers.dart';
@@ -21,7 +22,7 @@ class ReportesPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(currentUserRoleProvider);
+    final role = ref.watch(currentUserRoleProvider).valueOrNull ?? UserRole.practicante;
     if (!Permissions.canViewReportes(role)) {
       return Scaffold(
         appBar: AppBar(title: const Text('Reportes')),

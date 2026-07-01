@@ -6,4 +6,5 @@ abstract class DocenteRepository {
   Future<Docente> createDocente(Docente docente);
   Future<Docente> updateDocente(Docente docente);
   Future<void> desactivarDocente(String id);
+  Future<void> eliminarDocente(String id);
 }

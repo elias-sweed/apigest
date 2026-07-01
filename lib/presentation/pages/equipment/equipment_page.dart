@@ -6,6 +6,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/equipo.dart';
+import '../../../domain/entities/user_role.dart';
 import '../../providers/equipo_providers.dart';
 
 class EquipmentPage extends ConsumerWidget {
@@ -13,7 +14,7 @@ class EquipmentPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(currentUserRoleProvider);
+    final role = ref.watch(currentUserRoleProvider).valueOrNull ?? UserRole.practicante;
     final canManage = Permissions.canManageEquipos(role);
     final search = ref.watch(equipoSearchProvider);
     final filter = ref.watch(equipoFilterEstadoProvider);
