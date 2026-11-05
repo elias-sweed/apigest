@@ -66,8 +66,18 @@ List<_TabConfig> _tabsForRole(UserRole role) {
 }
 
 int _tabIndex(String location, List<_TabConfig> tabs) {
-  for (var i = 0; i < tabs.length; i++) {
-    if (location.startsWith(tabs[i].route)) return i;
+  // Sort by route length descending so more specific routes match first.
+  // e.g. '/dashboard/prestamos' must be checked before '/dashboard'.
+  final sorted = tabs
+      .asMap()
+      .entries
+      .toList()
+    ..sort((a, b) => b.value.route.length.compareTo(a.value.route.length));
+
+  for (final entry in sorted) {
+    if (location.startsWith(entry.value.route)) {
+      return entry.key;
+    }
   }
   return 0;
 }
